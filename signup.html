@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Discord Signup</title>
+  <style>
+    body {
+      margin: 0;
+      background-color: #313338;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    .signup-container {
+      background-color: #2b2d31;
+      border-radius: 8px;
+      padding: 40px 32px;
+      width: 400px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    h1 {
+      font-size: 20px;
+      font-weight: bold;
+      color: #f2f3f5;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #b9bbbe;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 20px;
+      border: none;
+      border-radius: 4px;
+      background-color: #1e1f22;
+      color: #dcddde;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+
+    input[type="submit"] {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      background-color: #5865F2;
+      color: #ffffff;
+      font-weight: bold;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    input[type="submit"]:hover {
+      background-color: #4752c4;
+    }
+
+    .error {
+      color: #f04747;
+      font-size: 13px;
+      display: none;
+      margin-top: -15px;
+      margin-bottom: 15px;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 999;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0, 0, 0, 0.65);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background-color: #2b2d31;
+      padding: 20px;
+      border-radius: 8px;
+      width: 350px;
+      text-align: center;
+      color: #fff;
+    }
+
+    .modal-content input[type="text"] {
+      background-color: #1e1f22;
+      border: none;
+      padding: 10px;
+      width: 90%;
+      border-radius: 4px;
+      color: #dcddde;
+    }
+
+    .modal-content button {
+      margin-top: 12px;
+      background-color: #5865F2;
+      border: none;
+      padding: 10px 20px;
+      color: white;
+      font-weight: bold;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .modal-content button:hover {
+      background-color: #4752c4;
+    }
+
+    .close {
+      color: #b9bbbe;
+      float: right;
+      font-size: 22px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .close:hover {
+      color: #ffffff;
+    }
+  </style>
+</head>
+<body>
+  <div class="signup-container">
+    <h1>Create an account</h1>
+    <form id="signup-form" onsubmit="return openModal(event)">
+      <label for="username">Username</label>
+      <input type="text" id="username" required />
+
+      <label for="password">Password</label>
+      <input type="password" id="password" required />
+
+      <p class="error" id="error-message">Username cannot contain 'discord'</p>
+      <input type="submit" value="Continue" />
+    </form>
+  </div>
+
+  <!-- Modal -->
+  <div id="verificationModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
+
+      <div id="verification-step">
+        <h2>Verify you’re human</h2>
+        <label><input type="checkbox" id="human-check" /> I'm not a robot</label>
+        <br><br>
+        <button onclick="startQuestions()">Continue</button>
+        <p class="error" id="check-error">Please confirm you're human.</p>
+      </div>
+
+      <div id="question-step" style="display:none;">
+        <h2>Question <span id="question-number">1</span>/1</h2>
+        <p id="question-text"></p>
+        <input type="text" id="user-answer" placeholder="Your Answer" />
+        <br>
+        <button onclick="submitAnswer()">Next</button>
+        <p class="error" id="verify-error">Incorrect answer. Try again.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const questions = [
+      { q: "What is 2 + 2?", a: "4" },
+
+    ];
+
+    let currentQuestion = 0;
+
+    function openModal(event) {
+      event.preventDefault();
+      const username = document.getElementById("username").value.trim().toLowerCase();
+      const password = document.getElementById("password").value.trim();
+      const error = document.getElementById("error-message");
+
+      if (!username || !password || username.includes("discord")) {
+        error.style.display = "block";
+        return false;
+      }
+
+      error.style.display = "none";
+      document.getElementById("verificationModal").style.display = "flex";
+      return false;
+    }
+
+    function closeModal() {
+      document.getElementById("verificationModal").style.display = "none";
+      resetVerification();
+    }
+
+    function startQuestions() {
+      const check = document.getElementById("human-check").checked;
+      const error = document.getElementById("check-error");
+      if (!check) {
+        error.style.display = "block";
+        return;
+      }
+
+      error.style.display = "none";
+      document.getElementById("verification-step").style.display = "none";
+      document.getElementById("question-step").style.display = "block";
+      loadQuestion();
+    }
+
+    function loadQuestion() {
+      document.getElementById("verify-error").style.display = "none";
+      document.getElementById("question-number").textContent = currentQuestion + 1;
+      document.getElementById("question-text").textContent = questions[currentQuestion].q;
+      document.getElementById("user-answer").value = "";
+    }
+
+    function submitAnswer() {
+      const userAnswer = document.getElementById("user-answer").value.trim().toLowerCase();
+      const correctAnswer = questions[currentQuestion].a.toLowerCase();
+
+      if (userAnswer !== correctAnswer) {
+        document.getElementById("verify-error").style.display = "block";
+        return;
+      }
+
+      currentQuestion++;
+      if (currentQuestion >= questions.length) {
+        completeSignup();
+      } else {
+        loadQuestion();
+      }
+    }
+
+    function completeSignup() {
+      const username = document.getElementById("username").value.trim();
+      const randomNumber = Math.floor(Math.random() * 9000) + 1000;
+      const fullUsername = `${username}#${randomNumber}`;
+      const joinDate = getRandomJoinDate();
+
+      localStorage.setItem("newUsername", fullUsername);
+      localStorage.setItem("joinDate", joinDate);
+      window.location.href = "discord.html";
+    }
+
+    function getRandomJoinDate() {
+      const start = new Date("2015-05-20").getTime();
+      const end = new Date().getTime();
+      const randomTime = new Date(start + Math.random() * (end - start));
+      return `${randomTime.getMonth() + 1}/${randomTime.getDate()}/${randomTime.getFullYear()}`;
+    }
+
+    function resetVerification() {
+      currentQuestion = 0;
+      document.getElementById("verification-step").style.display = "block";
+      document.getElementById("question-step").style.display = "none";
+      document.getElementById("human-check").checked = false;
+      document.getElementById("verify-error").style.display = "none";
+      document.getElementById("check-error").style.display = "none";
+    }
+  </script>
+</body>
+</html>
