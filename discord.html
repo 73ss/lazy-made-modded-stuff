@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Discord Profile</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Roboto', sans-serif;
+      background-color: #2c2f33;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .profile-card {
+      background-color: #202225;
+      border-radius: 8px;
+      width: 420px;
+      padding: 20px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+      z-index: 1;
+    }
+
+    .profile-header {
+      display: flex;
+      align-items: center;
+      flex-direction: column;
+    }
+
+    .profile-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-bottom: 15px;
+      border: 4px solid #2f3136;
+    }
+
+    .profile-info {
+      text-align: center;
+    }
+
+    .profile-info h2 {
+      margin: 0;
+      font-size: 20px;
+      color: #fff;
+    }
+
+    .profile-info p {
+      margin: 2px 0;
+      color: #b9bbbe;
+      font-size: 14px;
+    }
+
+    .username-badge {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .nitro-badge {
+      width: 28px;
+      height: 28px;
+      margin-left: 8px;
+      cursor: pointer;
+    }
+
+    .section {
+      margin-top: 20px;
+    }
+
+    .section input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      background-color: #2f3136;
+      border: 1px solid #4f545c;
+      color: white;
+      border-radius: 4px;
+      margin-top: 10px;
+    }
+
+    .section button {
+      width: 100%;
+      margin-top: 12px;
+      background-color: #5865f2;
+      border: none;
+      color: white;
+      padding: 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .section button:hover {
+      background-color: #4752c4;
+    }
+
+    .danger {
+      background-color: #ed4245 !important;
+    }
+
+    .danger:hover {
+      background-color: #d03438 !important;
+    }
+
+    #profilePicInput {
+      display: none;
+    }
+
+    /* Nitro Popup */
+    .popup-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.7);
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+    }
+
+    .popup-content {
+      background-color: #2f3136;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+      max-width: 300px;
+      position: relative;
+    }
+
+    .popup-content img {
+      width: 50px;
+      height: 50px;
+    }
+
+    .popup-content span {
+      color: #b9bbbe;
+      display: block;
+      margin-top: 10px;
+    }
+
+    .popup-close {
+      position: absolute;
+      top: 8px;
+      right: 10px;
+      font-size: 18px;
+      color: white;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<div class="profile-card">
+  <div class="profile-header">
+    <img id="profilePic" class="profile-avatar" src="" alt="Profile Picture" />
+    <div class="profile-info">
+      <h2 id="displayName">Display Name</h2>
+      <div class="username-badge">
+        <p id="username">User#0000</p>
+        <img id="badgeIcon" class="nitro-badge" src="" style="display:none;" onclick="showPopup()" />
+      </div>
+      <p>Joined: <span id="joinDate"></span></p>
+    </div>
+  </div>
+
+  <div class="section">
+    <input type="text" id="newUsername" placeholder="Change Username">
+    <input type="text" id="newDisplayName" placeholder="Change Display Name">
+    <button onclick="saveProfile()">Save Changes</button>
+    <button onclick="changeProfilePic()">Change Profile Picture</button>
+    <input type="file" id="profilePicInput" onchange="uploadProfilePic(event)">
+    <button onclick="subscribeToNitro()">Subscribe to Nitro</button>
+    <button onclick="resetAccountData()" class="danger">Log Out</button>
+  </div>
+</div>
+
+<!-- Nitro Popup -->
+<div id="popupOverlay" class="popup-overlay" onclick="closePopup(event)">
+  <div class="popup-content" onclick="event.stopPropagation()">
+    <div class="popup-close" onclick="closePopup(event)">×</div>
+    <img id="popupImage" src="" alt="Nitro Icon" />
+    <span id="popupText">Nitro Info Here</span>
+  </div>
+</div>
+
+<script>
+    const takenUsernames = [
+  "kai", "itsLiam", "lucas123", "zoe_", "xeno", "qxr", "_.kai", "m1sty", "nova", 
+  "blxze", "echoes", "sora", "vex", "aether", "shadowz", "user123", "xXx", "eclipse", 
+  "rayne", "0xdead", "neo", "k4i", "yuki", "eth", "ghostin", "drako", "fl0", "zack", "lily",
+  "dad", "mom", "tfz", "hazem", "leet"
+];
+
+  const nitroIcons = {
+    PRIMARY: {
+      OPAL: "https://cdn.discordapp.com/badge-icons/5b154df19c53dce2af92c9b61e6be5e2.png",
+      RUBY: "https://cdn.discordapp.com/badge-icons/cd5e2cfd9d7f27a8cdcd3e8a8d5dc9f4.png",
+      EMERALD: "https://cdn.discordapp.com/badge-icons/11e2d339068b55d3a506cff34d3780f3.png",
+      DIAMOND: "https://cdn.discordapp.com/badge-icons/0d61871f72bb9a33a7ae568c1fb4f20a.png",
+      PLATINUM: "https://cdn.discordapp.com/badge-icons/0334688279c8359120922938dcb1d6f8.png",
+      GOLD: "https://cdn.discordapp.com/badge-icons/2895086c18d5531d499862e41d1155a6.png",
+      SILVER: "https://cdn.discordapp.com/badge-icons/4514fab914bdbfb4ad2fa23df76121a6.png",
+      BRONZE: "https://cdn.discordapp.com/badge-icons/4f33c4a9c64ce221936bd256c356f91f.png"
+    }
+  };
+
+  const username = localStorage.getItem('newUsername');
+  const joinDate = localStorage.getItem('joinDate');
+  const profilePic = localStorage.getItem('profilePic');
+
+  document.getElementById('username').textContent = username || "User#0000";
+  document.getElementById('displayName').textContent = username?.split('#')[0] || "Display Name";
+  document.getElementById('joinDate').textContent = joinDate || "N/A";
+  if (profilePic) {
+    document.getElementById('profilePic').src = profilePic;
+  }
+
+  function saveProfile() {
+  const newUsernameInput = document.getElementById('newUsername').value.trim();
+  const newDisplayNameInput = document.getElementById('newDisplayName').value.trim();
+
+  const newUsername = newUsernameInput || username;
+  const newDisplayName = newDisplayNameInput || newUsername.split('#')[0];
+
+  const cleanUsername = newUsername.toLowerCase();
+
+  if (takenUsernames.includes(cleanUsername)) {
+    alert("That username is already taken.");
+    return;
+  }
+
+  document.getElementById('username').textContent = newUsername;
+  document.getElementById('displayName').textContent = newDisplayName;
+  localStorage.setItem('newUsername', newUsername);
+  alert("Profile saved!");
+}
+
+
+  function generateRandomDate(startDate, endDate) {
+    const start = Math.max(startDate.getTime(), new Date("2016-10-01").getTime());
+    const randomTime = start + Math.random() * (endDate.getTime() - start);
+    return new Date(randomTime);
+  }
+
+  function getNitroTier(months) {
+    if (months >= 72) return "OPAL";
+    if (months >= 60) return "RUBY";
+    if (months >= 36) return "EMERALD";
+    if (months >= 24) return "DIAMOND";
+    if (months >= 12) return "PLATINUM";
+    if (months >= 6) return "GOLD";
+    if (months >= 3) return "SILVER";
+    return "BRONZE";
+  }
+
+  let currentSubscription = null;
+
+  function subscribeToNitro() {
+    if (localStorage.getItem('nitroSubscriptionDate') && localStorage.getItem('nitroTier')) {
+      loadNitroFromStorage();
+      return;
+    }
+
+    const joinDateObj = new Date(localStorage.getItem('joinDate'));
+    const today = new Date();
+    const subscriptionDate = generateRandomDate(joinDateObj, today);
+    const formattedDate = subscriptionDate.toLocaleDateString();
+    const months = Math.floor((today - subscriptionDate) / (1000 * 60 * 60 * 24 * 30.4375));
+    const tier = getNitroTier(months);
+    const icon = nitroIcons.PRIMARY[tier];
+
+    localStorage.setItem('nitroSubscriptionDate', formattedDate);
+    localStorage.setItem('nitroTier', tier);
+
+    document.getElementById("badgeIcon").src = icon;
+    document.getElementById("badgeIcon").style.display = "block";
+
+    currentSubscription = { tier, date: formattedDate, icon };
+  }
+
+  function loadNitroFromStorage() {
+    const tier = localStorage.getItem('nitroTier');
+    const date = localStorage.getItem('nitroSubscriptionDate');
+    const icon = nitroIcons.PRIMARY[tier];
+
+    document.getElementById("badgeIcon").src = icon;
+    document.getElementById("badgeIcon").style.display = "block";
+
+    currentSubscription = { tier, date, icon };
+  }
+
+  function showPopup() {
+    if (!currentSubscription) return;
+
+    document.getElementById("popupImage").src = currentSubscription.icon;
+    document.getElementById("popupText").innerHTML =
+      `${currentSubscription.tier} Nitro<br>Subscriber since ${currentSubscription.date}`;
+    document.getElementById("popupOverlay").style.display = "flex";
+  }
+
+  function closePopup(event) {
+    document.getElementById("popupOverlay").style.display = "none";
+  }
+
+  function changeProfilePic() {
+    document.getElementById('profilePicInput').click();
+  }
+
+  function uploadProfilePic(event) {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        localStorage.setItem('profilePic', e.target.result);
+        document.getElementById('profilePic').src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  function resetAccountData() {
+    localStorage.clear();
+    alert("You've been logged out!");
+    window.location.href = "signup.html";
+  }
+
+  // On load, restore Nitro if already subscribed
+  if (localStorage.getItem('nitroTier')) {
+    loadNitroFromStorage();
+  }
+</script>
+
+</body>
+</html>
