@@ -207,7 +207,8 @@
       PLATINUM: "https://cdn.discordapp.com/badge-icons/0334688279c8359120922938dcb1d6f8.png",
       GOLD: "https://cdn.discordapp.com/badge-icons/2895086c18d5531d499862e41d1155a6.png",
       SILVER: "https://cdn.discordapp.com/badge-icons/4514fab914bdbfb4ad2fa23df76121a6.png",
-      BRONZE: "https://cdn.discordapp.com/badge-icons/4f33c4a9c64ce221936bd256c356f91f.png"
+      BRONZE: "https://cdn.discordapp.com/badge-icons/4f33c4a9c64ce221936bd256c356f91f.png",
+      NORMAL: "https://cdn.discordapp.com/badge-icons/2ba85e8026a8614b640c2837bcdfe21b.png
     }
   };
 
@@ -257,7 +258,8 @@
     if (months >= 12) return "PLATINUM";
     if (months >= 6) return "GOLD";
     if (months >= 3) return "SILVER";
-    return "BRONZE";
+    if (months >= 1) return "BRONZE";
+    return "NORMAL";
   }
 
   let currentSubscription = null;
