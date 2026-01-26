@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Discord Signup</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin:0; padding:0; }
+  body, html {
+    height: 100%;
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #2f3136, #202225);
+  }
+
+  .signup-container {
+    width: 380px;
+    padding: 40px 32px;
+    border-radius: 16px;
+    background: rgba(32,34,37,0.85);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    text-align: center;
+    animation: fadeIn 0.6s ease;
+  }
+
+  h1 {
+    color: #fff;
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 28px;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 13px;
+    color: #b9bbbe;
+    text-align: left;
+  }
+
+  input[type="text"], input[type="password"] {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 8px;
+    border: none;
+    background-color: #1f2024;
+    color: #dcddde;
+    font-size: 14px;
+    margin-bottom: 20px;
+    transition: 0.2s all;
+  }
+
+  input[type="text"]:focus, input[type="password"]:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px #5865F2;
+    background-color: #2a2b30;
+  }
+
+  input[type="submit"] {
+    width: 100%;
+    padding: 14px 0;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(135deg,#5865F2,#4752C4);
+    color: #fff;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    transition: 0.2s all;
+  }
+
+  input[type="submit"]:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+    background: linear-gradient(135deg,#4752C4,#3b3f57);
+  }
+
+  .error {
+    font-size: 13px;
+    color: #f04747;
+    display: none;
+    margin-bottom: 15px;
+    text-align: left;
+  }
+
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 999;
+    top:0; left:0;
+    width:100%; height:100%;
+    background-color: rgba(0,0,0,0.7);
+    justify-content: center;
+    align-items: center;
+  }
+
+  .modal-content {
+    width: 360px;
+    background: rgba(32,34,37,0.95);
+    backdrop-filter: blur(12px);
+    border-radius: 16px;
+    padding: 28px 24px;
+    position: relative;
+    animation: slideDown 0.5s ease;
+  }
+
+  .modal-content h2 { color: #fff; font-weight: 600; margin-bottom: 20px; }
+  .modal-content input[type="text"] {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: none;
+    background-color: #1f2024;
+    color: #ddcdde;
+    margin-top: 10px;
+  }
+  
+  #question-text {
+  color: #ddcdde; /* white */
+  font-weight: 500;
+  font-size: 16px;
+}
+
+  .modal-content button {
+    margin-top: 18px;
+    padding: 12px 24px;
+    border-radius: 8px;
+    border: none;
+    font-weight: 600;
+    background: linear-gradient(135deg,#5865F2,#4752C4);
+    color: #fff;
+    cursor: pointer;
+    transition: 0.2s all;
+  }
+
+  .modal-content button:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(135deg,#4752C4,#3b3f57);
+  }
+
+  .close {
+    position: absolute;
+    top: 14px;
+    right: 18px;
+    font-size: 22px;
+    font-weight: 700;
+    color: #b9bbbe;
+    cursor: pointer;
+  }
+  
+  .close:hover { color: #fff; }
+
+  input[type="checkbox"] { accent-color: #5865F2; margin-right: 8px; }
+
+  @keyframes fadeIn { from {opacity:0; transform: translateY(-20px);} to {opacity:1; transform: translateY(0);} }
+  @keyframes slideDown { from {opacity:0; transform: translateY(-20px);} to {opacity:1; transform: translateY(0);} }
+</style>
+</head>
+<body>
+
+<div class="signup-container">
+  <h1>Login to your account</h1>
+  <form id="signup-form" onsubmit="return openModal(event)">
+    <label for="username">Username</label>
+    <input type="text" id="username" required>
+
+    <label for="password">Password</label>
+    <input type="password" id="password" required>
+
+    <p class="error" id="error-message">Username cannot contain 'discord'</p>
+    <input type="submit" value="Continue">
+  </form>
+</div>
+
+<div id="verificationModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal()">&times;</span>
+
+    <div id="verification-step">
+      <h2>Verify you’re human</h2>
+      <label><input type="checkbox" id="human-check"> I'm not a robot</label>
+      <button onclick="startQuestions()">Continue</button>
+      <p class="error" id="check-error">Please confirm you're human.</p>
+    </div>
+
+    <div id="question-step" style="display:none;">
+      <h2>Question <span id="question-number">1</span>/1</h2>
+      <p id="question-text"></p>
+      <input type="text" id="user-answer" placeholder="Your Answer">
+      <button onclick="submitAnswer()">Next</button>
+      <p class="error" id="verify-error">Incorrect answer. Try again.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const questions = [{q:"What is 2 + 2?", a:"4"}];
+let currentQuestion = 0;
+
+function openModal(e){
+  e.preventDefault();
+  const username = document.getElementById("username").value.trim().toLowerCase();
+  const password = document.getElementById("password").value.trim();
+  const error = document.getElementById("error-message");
+  if(!username || !password || username.includes("discord")) { error.style.display="block"; return false; }
+  error.style.display="none";
+  document.getElementById("verificationModal").style.display="flex"; // only now popup
+  return false;
+}
+
+function closeModal(){
+  document.getElementById("verificationModal").style.display="none";
+  resetVerification();
+}
+
+function startQuestions(){
+  const check = document.getElementById("human-check").checked;
+  const error = document.getElementById("check-error");
+  if(!check){ error.style.display="block"; return; }
+  error.style.display="none";
+  document.getElementById("verification-step").style.display="none";
+  document.getElementById("question-step").style.display="block";
+  loadQuestion();
+}
+
+function loadQuestion(){
+  document.getElementById("verify-error").style.display="none";
+  document.getElementById("question-number").textContent = currentQuestion+1;
+  document.getElementById("question-text").textContent = questions[currentQuestion].q;
+  document.getElementById("user-answer").value="";
+}
+
+function submitAnswer(){
+  const userAnswer = document.getElementById("user-answer").value.trim().toLowerCase();
+  const correctAnswer = questions[currentQuestion].a.toLowerCase();
+  if(userAnswer!==correctAnswer){ document.getElementById("verify-error").style.display="block"; return; }
+  currentQuestion++;
+  if(currentQuestion>=questions.length) completeSignup();
+  else loadQuestion();
+}
+
+function completeSignup(){
+  const username = document.getElementById("username").value.trim();
+  const randomNumber = Math.floor(Math.random()*9000)+1000;
+  const fullUsername = `${username}#${randomNumber}`;
+  const joinDate = getRandomJoinDate();
+  localStorage.setItem("newUsername", fullUsername);
+  localStorage.setItem("joinDate", joinDate);
+  window.location.href="discord.html";
+}
+
+function getRandomJoinDate(){
+  const start = new Date("2015-05-20").getTime();
+  const end = new Date().getTime();
+  const randomTime = new Date(start + Math.random()*(end-start));
+  return `${randomTime.getMonth()+1}/${randomTime.getDate()}/${randomTime.getFullYear()}`;
+}
+
+function resetVerification(){
+  currentQuestion=0;
+  document.getElementById("verification-step").style.display="block";
+  document.getElementById("question-step").style.display="none";
+  document.getElementById("human-check").checked=false;
+  document.getElementById("verify-error").style.display="none";
+  document.getElementById("check-error").style.display="none";
+}
+</script>
+
+</body>
+</html>
