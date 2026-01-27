@@ -302,6 +302,8 @@ const extracurricularIcons = {
   LEGACY_USERNAME: "https://cdn.discordapp.com/badge-icons/6de6d34650760ba5551a79732e98ed60.png"
 };
 
+let defaultPFP = ""
+
 // === Utilities ===
 function generateRandomDate(start, end){
     const startMs = start.getTime();
@@ -331,6 +333,7 @@ function getBoostTier(months){
 }
 
 // === Load Profile ===
+defaultPFP = `https://cdn.discordapp.com/embed/avatars/${Math.floor(Math.random() * 6)}.png`;
 let username = localStorage.getItem('newUsername') || "User#0000";
 let joinDateStr = localStorage.getItem('joinDate');
 let joinDateObj;
@@ -342,12 +345,12 @@ if(!joinDateStr){
     joinDateObj = new Date(joinDateStr);
 }
 
-let profilePic = localStorage.getItem('profilePic') || "";
+//let profilePic = localStorage.getItem('profilePic') || ""; unavailable, now!
 
 document.getElementById('username').textContent = username;
 document.getElementById('displayName').textContent = username.split('#')[0];
 document.getElementById('joinDate').textContent = `${joinDateObj.getMonth()+1}/${joinDateObj.getDate()}/${joinDateObj.getFullYear()}`;
-document.getElementById('profilePic').src = profilePic;
+document.getElementById('profilePic').src = defaultPFP;
 
 // === Profile Functions ===
 function saveProfile(){
