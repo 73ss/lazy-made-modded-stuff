@@ -65,26 +65,6 @@ body, html {
     color: #b9bbbe;
 }
 
-/* === Username Badge === */
-.username-badge {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 1px;
-    margin-bottom: 6px;
-}
-
-.nitro-badge, .dev-badge-icon {
-    width: 28px;
-    height: 28px;
-    cursor: pointer;
-    transition: 0.2s all;
-}
-
-.nitro-badge:hover, .dev-badge-icon:hover {
-    transform: scale(1.1);
-}
-
 /* === Sections === */
 .section {
     display: flex;
@@ -200,11 +180,43 @@ body, html {
     to { opacity:1; transform: translateY(0);}
 }
 
-.dev-badges {
-    display: flex;
-    gap: 1px;
+/* === Username + Badges Row === */
+.username-row {
+    display: inline-flex;
     align-items: center;
-    justify-content: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+/* Username text */
+#username {
+    display: inline-block;
+}
+
+/* === Badges Container === */
+.badges {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+
+    /* must NOT be fixed size */
+    width: auto;
+    height: auto;
+}
+
+/* === Individual Badge Icons === */
+.badges img {
+    width: 30px;          /* your chosen size */
+    height: 30px;
+    object-fit: contain;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.badges img:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.15);
 }
 
 </style>
@@ -216,10 +228,9 @@ body, html {
     <img id="profilePic" class="profile-avatar" src="" alt="Profile Picture" />
     <div class="profile-info">
       <h2 id="displayName">Display Name</h2>
-      <div class="username-badge">
-        <p id="username">User#0000</p>
-        <img id="badgeIcon" class="nitro-badge" src="" style="display:none;" onclick="showPopup()" />
-        <div id="devBadges" class="dev-badges"></div>
+      <div class="username-row">
+        <span id="username">User#0000</span>
+        <div id="allBadges" class="badges"></div>
       </div>
       <p>Joined: <span id="joinDate"></span></p>
     </div>
@@ -234,7 +245,9 @@ body, html {
     <button onclick="subscribeToNitro()">Subscribe to Nitro</button>
     <button onclick="developStuff()">Become a Developer</button>
     <button onclick="loadHSBadge()">Take the Hypesquad Quiz</button>
-    <button onclick="loadBoostBadge()">Boost a discord server</button>
+    <button onclick="boostServer()">Boost a discord server</button>
+    <button onclick="unsubscribeNitro()">Unsubscribe to Nitro</button>
+    <button onclick="ableLegacy()">En/Dis able Legacy Username Badge</button>
     <button onclick="resetAccountData()" class="danger">Log Out</button>
   </div>
 </div>
@@ -274,15 +287,15 @@ const nitroIcons = {
 };
 
 const boostIcons = {
-  0:  "https://cdn.discordapp.com/badge-icons/51040c70d4f20a921ad6674ff86fc95c.png", // 1 month
-  2:  "https://cdn.discordapp.com/badge-icons/0e4080d1d333bc7ad29ef6528b6f2fb7.png", // 2 months
-  3:  "https://cdn.discordapp.com/badge-icons/72bed924410c304dbe3d00a6e593ff59.png", // 3 months
-  6:  "https://cdn.discordapp.com/badge-icons/df199d2050d3ed4ebf84d64ae83989f8.png", // 6 months
-  9:  "https://cdn.discordapp.com/badge-icons/996b3e870e8a22ce519b3a50e6bdd52f.png", // 9 months
-  12: "https://cdn.discordapp.com/badge-icons/991c9f39ee33d7537d9f408c3e53141e.png", // 12 months
-  15: "https://cdn.discordapp.com/badge-icons/cb3ae83c15e970e8f3d410bc62cb8b99.png", // 15 months
-  18: "https://cdn.discordapp.com/badge-icons/7142225d31238f6387d9f09efaa02759.png", // 18 months
-  24: "https://cdn.discordapp.com/badge-icons/ec92202290b48d0879b7413d2dde3bab.png"  // 24 months
+  0:  "https://cdn.discordapp.com/badge-icons/51040c70d4f20a921ad6674ff86fc95c.png",
+  2:  "https://cdn.discordapp.com/badge-icons/0e4080d1d333bc7ad29ef6528b6f2fb7.png",
+  3:  "https://cdn.discordapp.com/badge-icons/72bed924410c304dbe3d00a6e593ff59.png",
+  6:  "https://cdn.discordapp.com/badge-icons/df199d2050d3ed4ebf84d64ae83989f8.png",
+  9:  "https://cdn.discordapp.com/badge-icons/996b3e870e8a22ce519b3a50e6bdd52f.png",
+  12: "https://cdn.discordapp.com/badge-icons/991c9f39ee33d7537d9f408c3e53141e.png",
+  15: "https://cdn.discordapp.com/badge-icons/cb3ae83c15e970e8f3d410bc62cb8b99.png",
+  18: "https://cdn.discordapp.com/badge-icons/7142225d31238f6387d9f09efaa02759.png",
+  24: "https://cdn.discordapp.com/badge-icons/ec92202290b48d0879b7413d2dde3bab.png"
 };
 
 const devIcons = {
@@ -299,10 +312,12 @@ const hypesquadIcons = {
 const extracurricularIcons = {
   EARLY_SUPPORTER: "https://cdn.discordapp.com/badge-icons/7060786766c9c840eb3019e725d2b358.png",
   COMPLETED_QUEST: "https://cdn.discordapp.com/badge-icons/7d9ae358c8c5e118768335dbe68b4fb8.png",
-  LEGACY_USERNAME: "https://cdn.discordapp.com/badge-icons/6de6d34650760ba5551a79732e98ed60.png"
+  LEGACY_USERNAME: "https://cdn.discordapp.com/badge-icons/6de6d34650760ba5551a79732e98ed60.png",
+  PARTNER_BADGE: "https://cdn.discordapp.com/badge-icons/3f9748e53446a137a052f3454e2de41e.png"
 };
 
-let defaultPFP = ""
+// Default profile picture
+let defaultPFP = `https://cdn.discordapp.com/embed/avatars/${Math.floor(Math.random() * 6)}.png`;
 
 // === Utilities ===
 function generateRandomDate(start, end){
@@ -333,19 +348,13 @@ function getBoostTier(months){
 }
 
 // === Load Profile ===
-defaultPFP = `https://cdn.discordapp.com/embed/avatars/${Math.floor(Math.random() * 6)}.png`;
 let username = localStorage.getItem('newUsername') || "User#0000";
 let joinDateStr = localStorage.getItem('joinDate');
-let joinDateObj;
+let joinDateObj = joinDateStr ? new Date(joinDateStr) : new Date("2015-05-13");
 
 if(!joinDateStr){
-    joinDateObj = new Date("2015-05-13"); // default
     localStorage.setItem('joinDate', joinDateObj.toISOString());
-} else {
-    joinDateObj = new Date(joinDateStr);
 }
-
-//let profilePic = localStorage.getItem('profilePic') || ""; unavailable, now!
 
 document.getElementById('username').textContent = username;
 document.getElementById('displayName').textContent = username.split('#')[0];
@@ -394,169 +403,291 @@ function resetAccountData(){
     window.location.href="login.html";
 }
 
+// === Badges Helper ===
+function clearAllBadges(){
+    document.getElementById("allBadges").innerHTML = "";
+}
+
+function addBadge(src, title, onClick=null, id=null){
+    const badge = document.createElement("img");
+    badge.src = src;
+    badge.title = title;
+    badge.className = "badges";
+    if(onClick) badge.onclick = onClick;
+    if(id) badge.id = id;
+    document.getElementById("allBadges").appendChild(badge);
+}
+
 // === Nitro ===
 let currentSubscription = null;
 
 function subscribeToNitro(){
-    if(localStorage.getItem('nitroTier')){
-        loadNitro();
+    if (currentSubscription) {
+        alert("You already have Nitro!");
         return;
     }
 
     const today = new Date();
+    const subscriptionDate = generateRandomDate(joinDateObj, today);
 
-    // Load previous subscription info
-    const prevTier = localStorage.getItem('nitroTier');
-    const prevDateStr = localStorage.getItem('nitroSubscriptionDate');
-    const firstSubDateStr = localStorage.getItem('firstNitroDate'); // Track first-ever subscription
-    const previousSubscriptionDate = prevDateStr ? new Date(prevDateStr) : joinDateObj;
-    
-    // Decide if resubscribe (50% chance if they already had Nitro)
-    const resubscribe = prevTier && Math.random() < 0.5;
+    localStorage.setItem('firstNitroDate', subscriptionDate.toISOString());
 
-    // New subscription date is between previous expiration (or join) and today
-    const subscriptionStart = resubscribe ? previousSubscriptionDate : joinDateObj;
-    const subscriptionDate = generateRandomDate(subscriptionStart, today);
-
-    // Save first-ever subscription date for Early Supporter logic
-    if (!firstSubDateStr) {
-        localStorage.setItem('firstNitroDate', subscriptionDate.toISOString());
-    }
-    const firstSubDate = firstSubDateStr ? new Date(firstSubDateStr) : subscriptionDate;
-
-    // Months subscribed determines Nitro tier
     const monthsSubscribed = Math.floor((today - subscriptionDate) / (1000*60*60*24*30.4375));
     const tier = getNitroTier(monthsSubscribed);
-    const icon = nitroIcons[tier];
-    if (!localStorage.getItem('firstNitroDate')) {
-    localStorage.setItem('firstNitroDate', subscriptionDate.toISOString());
-}
-    const formattedDate = `${subscriptionDate.getMonth()+1}/${subscriptionDate.getDate()}/${subscriptionDate.getFullYear()}`;
 
-    // Early Supporter logic based on first-ever subscription date
     const earlySupporterCutoff = new Date("2018-10-10");
-    let hasEarlySupporter = localStorage.getItem('earlySupporter') === 'true';
-    if (!hasEarlySupporter && firstSubDate < earlySupporterCutoff) {
-        hasEarlySupporter = true;
-        localStorage.setItem('earlySupporter', 'true');
-    }
+    const hasEarlySupporter = subscriptionDate < earlySupporterCutoff;
 
+    currentSubscription = {
+        tier,
+        icon: nitroIcons[tier],
+        date: `${subscriptionDate.getMonth()+1}/${subscriptionDate.getDate()}/${subscriptionDate.getFullYear()}`,
+        earlySupporter: hasEarlySupporter
+    };
 
-
-    // Update current subscription
-    currentSubscription = {tier, icon, date: formattedDate, earlySupporter: hasEarlySupporter};
-    document.getElementById("badgeIcon").src = icon;
-    document.getElementById("badgeIcon").style.display = "block";
-
-    // Store in localStorage
     localStorage.setItem('nitroTier', tier);
-    localStorage.setItem('nitroSubscriptionDate', formattedDate);
+    localStorage.setItem('nitroSubscriptionDate', subscriptionDate.toISOString());
+    localStorage.setItem('earlySupporter', hasEarlySupporter);
 
-    if (hasEarlySupporter) {
-        console.log("🎉 User qualifies for Early Supporter badge!");
+    loadAllBadges();
+}
+
+// Toggle Legacy Username badge manually
+// Toggle Legacy Username Badge
+// Toggle Legacy Username Badge
+function ableLegacy() {
+    const allBadgesContainer = document.getElementById("allBadges");
+    const badgeId = "legacyBadge"; // fixed ID
+    const current = localStorage.getItem("legacyBadgeEnabled") === "true";
+    const newState = !current;
+
+    localStorage.setItem("legacyBadgeEnabled", newState);
+
+    const joinDateStr = localStorage.getItem("joinDate");
+    const joinDate = joinDateStr ? new Date(joinDateStr) : new Date();
+    const firstChange = localStorage.getItem("newUsername") !== null; // changed username at least once
+    const eligibilityDate = new Date("2023-06-15");
+    const isEligible = firstChange && joinDate < eligibilityDate;
+
+    // Always remove existing legacy badge first
+    const existingBadge = document.getElementById(badgeId);
+    if (existingBadge) allBadgesContainer.removeChild(existingBadge);
+
+    // Add badge if enabled AND eligible
+    if (newState && isEligible) {
+        addBadge(
+            extracurricularIcons.LEGACY_USERNAME,
+            "Legacy Username",
+            null,
+            badgeId
+        );
+        alert("Legacy Username badge enabled.");
+    } else {
+        alert("Legacy Username badge disabled or not eligible.");
     }
 }
 
-function loadNitro(){
-    const tier = localStorage.getItem('nitroTier');
-    const date = localStorage.getItem('nitroSubscriptionDate');
-    const icon = nitroIcons[tier];
-
-    // Load early supporter status
-    const hasEarlySupporter = localStorage.getItem('earlySupporter') === 'true';
-
-    currentSubscription = {tier, icon, date, earlySupporter: hasEarlySupporter};
-
-    // Display Nitro badge
-    const badgeIconEl = document.getElementById("badgeIcon");
-    badgeIconEl.src = icon;
-    badgeIconEl.style.display = "block";
-
-    if (hasEarlySupporter) {
-        console.log("🎉 User qualifies for Early Supporter badge!");
-        // Optional: show the badge in UI (like next to Nitro)
-        // For example, you could add a little icon in devBadges row
-        const devBadgesContainer = document.getElementById("devBadges");
-        if (!document.getElementById("earlySupporterBadge")) {
-            const esBadge = document.createElement("img");
-            esBadge.id = "earlySupporterBadge";
-            esBadge.src = extracurricularIcons.EARLY_SUPPORTER;
-            esBadge.title = "Early Supporter";
-            esBadge.className = "dev-badge-icon";
-            devBadgesContainer.appendChild(esBadge);
-        }
+function developStuff() {
+    if (localStorage.getItem("developerType")) {
+        alert("You are already a developer.");
+        return;
     }
+
+    const joinDateStr = localStorage.getItem("joinDate");
+    const joinDate = joinDateStr ? new Date(joinDateStr) : new Date();
+
+    const earlyDevCutoff = new Date("2020-08-19"); // accounts after this cannot get EARLY
+
+    let devType;
+    if (joinDate < earlyDevCutoff) {
+        // 20% chance EARLY, 80% ACTIVE
+        devType = Math.random() < 0.2 ? "EARLY" : "ACTIVE";
+    } else {
+        // Accounts after 8/19/2020 can only get ACTIVE
+        devType = "ACTIVE";
+    }
+
+    localStorage.setItem("developerType", devType);
+    loadAllBadges();
+
+    alert(
+        devType === "EARLY"
+            ? "You became an Early Developer!"
+            : "You became an Active Developer!"
+    );
 }
 
 function loadHSBadge(){
-    const cutoff2cx = new Date("2025-09-16");
-    if (joinDateObj < cutoff2cx) {
-    const badgesContainer = document.getElementById("devBadges");
+    const hsDisc = new Date("2025-09-16");
 
-    // If already loaded in DOM, stop
-    if (document.getElementById("hypesquadBadge")) return;
-
-    // Load or roll a HypeSquad house
-    let house = localStorage.getItem("hypesquadHouse");
-    if (!house) {
-        const houses = Object.keys(hypesquadIcons);
-        house = houses[Math.floor(Math.random() * houses.length)];
-        localStorage.setItem("hypesquadHouse", house);
+    if (joinDateObj >= hsDisc) {
+        alert("Your account is not eligible for HypeSquad.");
+        return;
     }
 
-    // Create badge
-    const hsBadge = document.createElement("img");
-    hsBadge.id = "hypesquadBadge";
-    hsBadge.src = hypesquadIcons[house];
-    hsBadge.className = "dev-badge-icon";
-    hsBadge.title = `HypeSquad ${house.charAt(0) + house.slice(1).toLowerCase()}`;
-
-    badgesContainer.appendChild(hsBadge);
-  } else {
-    alert("Hypesquad badges has been expired since September 16th, 2025. Your account is unfortunately too new to get the badge now.")
+    if (localStorage.getItem("hypesquadHouse")) {
+        alert("You already completed the HypeSquad quiz.");
+        return;
     }
+
+    const houses = Object.keys(hypesquadIcons);
+    const house = houses[Math.floor(Math.random() * houses.length)];
+
+    localStorage.setItem("hypesquadHouse", house);
+    loadAllBadges();
+
+    alert(`You joined HypeSquad ${house}!`);
 }
 
-function loadBoostBadge(){
-    const nitroDateStr = localStorage.getItem('nitroSubscriptionDate');
-    if (!nitroDateStr) return; // no nitro = no boost
+function boostServer() {
+    if (!currentSubscription) {
+        alert("You need Nitro to boost a server.");
+        return;
+    }
 
-    const nitroStart = new Date(nitroDateStr);
+    if (localStorage.getItem('boostStartDate')) {
+        alert("You are already boosting a server.");
+        return;
+    }
+
+    const nitroDateStr = localStorage.getItem('nitroSubscriptionDate');
+    const nitroStartDate = nitroDateStr ? new Date(nitroDateStr) : new Date();
     const today = new Date();
 
-    // Load or generate boost start date
-    let boostDateStr = localStorage.getItem('boostStartDate');
-    let boostStartDate;
+    // Generate a random date between Nitro subscription date and today
+    const boostStartDate = generateRandomDate(nitroStartDate, today);
 
-    if (!boostDateStr){
-        boostStartDate = generateRandomDate(nitroStart, today);
-        localStorage.setItem('boostStartDate', boostStartDate.toISOString());
-    } else {
-        boostStartDate = new Date(boostDateStr);
-    }
+    localStorage.setItem('boostStartDate', boostStartDate.toISOString());
+    loadAllBadges();
 
-    // Calculate boost months
-    const boostMonths = Math.floor(
-        (today - boostStartDate) / (1000 * 60 * 60 * 24 * 30.4375)
-    );
-
-    const boostIcon = getBoostTier(boostMonths);
-    if (!boostIcon) return;
-
-    const badgesContainer = document.getElementById("devBadges");
-
-    // Prevent duplicates
-    if (document.getElementById("boostBadge")) return;
-
-    const boostBadge = document.createElement("img");
-    boostBadge.id = "boostBadge";
-    boostBadge.src = boostIcon;
-    boostBadge.className = "dev-badge-icon";
-    boostBadge.title = `Server Boosting since ${boostMonths} month${boostMonths === 1 ? "" : "s"}`;
-
-    badgesContainer.appendChild(boostBadge);
+    alert(`Server boost started on ${boostStartDate.getMonth() + 1}/${boostStartDate.getDate()}/${boostStartDate.getFullYear()}`);
 }
 
+// === Auto Partner Badge (1 in 100 chance per login) ===
+function maybeAssignPartnerBadge() {
+    // Only assign if user doesn't already have it
+    if (localStorage.getItem("partner") === "true") return;
+
+    const roll = Math.floor(Math.random() * 100); // 0-99
+    if (roll === 0) {
+        localStorage.setItem("partner", "true");
+        loadAllBadges();
+        alert("🎉 You just got the Partner badge!");
+    }
+}
+
+function unsubscribeNitro(){
+    if (!currentSubscription) {
+        alert("You don’t have Nitro.");
+        return;
+    }
+
+    const roll = Math.floor(Math.random() * 3) + 1;
+
+    // Remove Nitro
+    currentSubscription = null;
+    localStorage.removeItem('nitroTier');
+    localStorage.removeItem('nitroSubscriptionDate');
+
+    alert("Unsubscribing to nitro.")
+
+    loadAllBadges();
+
+    if (roll === 1) {
+        alert("You commonly use nitro's boosts, this is also going to expire")
+    setTimeout(() => {
+        localStorage.removeItem('boostStartDate');
+        loadAllBadges();
+    }, 10000);
+}
+}
+
+// === Load All Badges ===
+function loadAllBadges(){
+    clearAllBadges();
+
+    /* ===== Nitro ===== */
+    if (currentSubscription) {
+        addBadge(
+            currentSubscription.icon,
+            `${currentSubscription.tier} Nitro`,
+            () => showPopup()
+        );
+
+        if (currentSubscription.earlySupporter) {
+            addBadge(
+                extracurricularIcons.EARLY_SUPPORTER,
+                "Early Supporter"
+            );
+        }
+    }
+
+    /* ===== Server Boost ===== */
+    const boostDateStr = localStorage.getItem("boostStartDate");
+    if (boostDateStr) {
+        const boostStartDate = new Date(boostDateStr);
+        const today = new Date();
+        const boostMonths = Math.floor(
+            (today - boostStartDate) / (1000 * 60 * 60 * 24 * 30.4375)
+        );
+        const boostIcon = getBoostTier(boostMonths);
+
+        if (boostIcon) {
+            addBadge(
+                boostIcon,
+                `Server Boosting since ${boostMonths} month${boostMonths === 1 ? "" : "s"}`
+            );
+        }
+    }
+
+    /* ===== HypeSquad (manual + eligibility gated) ===== */
+    const hsDisc = new Date("2025-09-16");
+    const house = localStorage.getItem("hypesquadHouse");
+
+    if (house && joinDateObj < hsDisc) {
+        addBadge(
+            hypesquadIcons[house],
+            `HypeSquad ${house.charAt(0) + house.slice(1).toLowerCase()}`
+        );
+    }
+
+    /* ===== Developer (manual only) ===== */
+    const devType = localStorage.getItem("developerType");
+    if (devType) {
+        addBadge(
+            devIcons[devType],
+            devType === "EARLY" ? "Early Developer" : "Active Developer",
+            () => showDevPopup(devType)
+        );
+    }
+
+    /* ===== Partner (RNG, auto, rare) ===== */
+    if (localStorage.getItem("partner") === "true") {
+        addBadge(
+            extracurricularIcons.PARTNER_BADGE,
+            "Discord Partner"
+        );
+    }
+
+    /* ===== Legacy Username Badge ===== */
+    const legacyEnabled = localStorage.getItem("legacyBadgeEnabled") === "true";
+    const joinDateStr = localStorage.getItem("joinDate");
+    const joinDate = joinDateStr ? new Date(joinDateStr) : new Date();
+    const firstChange = localStorage.getItem("newUsername") !== null;
+    const eligibilityDate = new Date("2023-06-15");
+    const isEligible = firstChange && joinDate < eligibilityDate;
+
+    if (legacyEnabled && isEligible) {
+        addBadge(
+            extracurricularIcons.LEGACY_USERNAME,
+            "Legacy Username",
+            null,
+            "legacyBadge"
+        );
+    }
+}
+
+// === Popup Functions ===
 function showPopup(){
     if(!currentSubscription) return;
     document.getElementById("popupImage").src = currentSubscription.icon;
@@ -565,37 +696,6 @@ function showPopup(){
 }
 
 function closePopup(){ document.getElementById("popupOverlay").style.display="none"; }
-
-// === Developer ===
-function developStuff(){
-    const badgesContainer = document.getElementById("devBadges");
-    badgesContainer.innerHTML = "";
-
-    const earlyCutoff = new Date("2020-10-07");
-    let gotEarly = false;
-
-    if(joinDateObj < earlyCutoff){
-        // 1 in 25 chance
-        gotEarly = Math.random() < (1/25);
-    }
-
-    if(gotEarly){
-        const early = document.createElement("img");
-        early.src = devIcons.EARLY;
-        early.className = "dev-badge-icon";
-        early.title = "Early Developer";
-        early.onclick = ()=>showDevPopup("EARLY");
-        badgesContainer.appendChild(early);
-    }
-
-    // Active Dev always
-    const active = document.createElement("img");
-    active.src = devIcons.ACTIVE;
-    active.className = "dev-badge-icon";
-    active.title = "Active Developer";
-    active.onclick = ()=>showDevPopup("ACTIVE");
-    badgesContainer.appendChild(active);
-}
 
 function showDevPopup(type){
     const devImage = document.getElementById("devPopupImage");
@@ -613,7 +713,17 @@ function showDevPopup(type){
 function closeDevPopup(){ document.getElementById("devPopupOverlay").style.display="none"; }
 
 // === Init ===
-if(localStorage.getItem('nitroTier')) loadNitro();
+if(localStorage.getItem('nitroTier')){
+    currentSubscription = {
+        tier: localStorage.getItem('nitroTier'),
+        icon: nitroIcons[localStorage.getItem('nitroTier')],
+        date: localStorage.getItem('nitroSubscriptionDate'),
+        earlySupporter: localStorage.getItem('earlySupporter')==='true'
+    };
+}
+maybeAssignPartnerBadge();
+loadAllBadges();
+
 </script>
 
 
